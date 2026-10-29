@@ -15,7 +15,7 @@ if (cmd === 'dump') {
   const { corpus, skipped } = await loadCorpus(abs);
   const results = checkCorpus(corpus);
   const designs = results.map((r) => ({
-    name: r.name, folder: r.folder, pages: corpus.designPages(r.name).map((p) => p.file),
+    name: r.name, folder: r.folder, pages: corpus.designOrder(r.name).map((p) => (typeof p === 'string' ? p : p.file)),
     definitions: corpus.defs.filter((d) => d.design === r.name && d.kind === 'own').map((d) => ({ path: d.path, type: d.item.token.type, file: d.file, line: d.line, token: d.item.token.raw })),
     diagnostics: r.diagnostics, readiness: r.readiness,
     views: corpus.designPages(r.name).map((p) => ({ file: p.file, view: viewOf(corpus, p.file) })),
