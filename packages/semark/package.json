@@ -7,7 +7,7 @@
   "main": "src/index.js",
   "exports": { ".": "./src/index.js", "./*.js": "./src/*.js" },
   "bin": { "semark": "bin/semark.js" },
-  "files": ["src", "bin", "README.md"],
+  "files": ["src", "bin", "init", "README.md"],
   "engines": { "node": ">=20" },
   "repository": { "type": "git", "url": "https://github.com/nakrill/semark" },
   "keywords": ["sema", "design", "markdown", "specification", "wireframe", "agents"]

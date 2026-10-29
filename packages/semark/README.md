@@ -6,6 +6,7 @@ The Sema language: Markdown with the design's decisions in `[[double brackets]]`
 npx semark check docs/design           # every design under the corpus root: problems with file:line, readiness per screen; exit 1 on errors
 npx semark check docs/design --json
 npx semark dump docs/design            # the resolved model as JSON
+npx semark init docs/design            # a corpus to start from
 ```
 
 ```js

@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadCorpusFiles, loadCorpus, runCheck, TooBig } from '../packages/semark/src/corpus.js';
 import { checkCorpus } from '../packages/semark/src/check.js';
 
@@ -72,4 +73,14 @@ test('runCheck prints a report and returns 1 on errors, 0 when clean, and says s
   const parsed = JSON.parse(json.text);
   assert.equal(parsed.designs.length, 1);
   assert.equal(checkCorpus((await loadCorpus(broken)).corpus)[0].diagnostics.length, parsed.designs[0].diagnostics.length);
+});
+
+test('semark init starts a corpus that checks clean, and refuses a folder that is not empty', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const bin = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'packages', 'semark', 'bin', 'semark.js');
+  const dir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'semark-init-')), 'corpus');
+  assert.match(execFileSync(process.execPath, [bin, 'init', dir], { encoding: 'utf8' }), /Started a corpus/);
+  assert.match(execFileSync(process.execPath, [bin, 'check', dir], { encoding: 'utf8' }), /1 designs · 4 pages · 14 tokens · 0 errors · 0 warnings/);
+  assert.throws(() => execFileSync(process.execPath, [bin, 'init', dir], { encoding: 'utf8', stdio: 'pipe' }));
+  assert.match(execFileSync(process.execPath, [bin, '--version'], { encoding: 'utf8' }), /semark 0\.8\.1/);
 });

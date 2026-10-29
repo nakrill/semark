@@ -33,12 +33,13 @@ Colour, type and pixels belong to a **binding**, which maps patterns such as `ch
 
 ```sh
 npm install            # nothing to install but the workspace itself; the library has no dependencies
-npm test               # 48 tests, numbers worked out by hand before the code
+npm test               # 49 tests, numbers worked out by hand before the code
 npm run check          # the sample corpus: 4 designs, 29 pages, 0 errors, and the open questions it keeps on purpose
 
 node packages/semark/bin/semark.js check examples/larder          # problems with file:line, readiness per screen; exit 1 on errors
 node packages/semark/bin/semark.js check examples/larder --json
 node packages/semark/bin/semark.js dump examples/larder            # the resolved model: definitions, diagnostics, readiness, drawings
+node packages/semark/bin/semark.js init my-designs                  # a corpus to start from, with one small design
 ```
 
 A corpus is a folder that holds `patterns.md` (and `words.md`, `roles.md`) and, under it, designs: folders whose `index.md` says `sema: design`.
