@@ -1,0 +1,11 @@
+{
+  "name": "semark-mcp",
+  "version": "0.8.1",
+  "description": "Sema as tools for agents over the Model Context Protocol: check a corpus, dump its resolved model, look one page up.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "bin": { "semark-mcp": "server.js" },
+  "files": ["server.js", "README.md"],
+  "engines": { "node": ">=20" },
+  "dependencies": { "semark": "0.8.1" }
+}

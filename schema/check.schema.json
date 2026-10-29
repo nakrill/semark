@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/nakrill/semark/schema/check.schema.json",
+  "title": "semark check --json",
+  "description": "What `semark check <root> --json` prints: the corpus-level findings and, per design, its diagnostics and the readiness of every screen and widget.",
+  "type": "object",
+  "required": ["root", "skipped", "corpus", "designs"],
+  "properties": {
+    "root": { "type": "string", "description": "The corpus root, absolute." },
+    "skipped": { "type": "array", "items": { "type": "string" }, "description": "Nested copies of a corpus (folders with their own patterns.md) that were not walked." },
+    "corpus": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" }, "description": "Findings about the corpus as a whole, such as two folders declaring one design name." },
+    "designs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "folder", "pages", "diagnostics", "readiness"],
+        "properties": {
+          "name": { "type": "string" },
+          "folder": { "type": "string", "description": "Corpus-relative, with /; empty for the root." },
+          "pages": { "type": "integer" },
+          "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+          "readiness": { "type": "array", "items": { "$ref": "#/$defs/readiness" } }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "diagnostic": {
+      "type": "object",
+      "required": ["severity", "code", "file", "line", "col", "raw", "message"],
+      "properties": {
+        "severity": { "enum": ["error", "warning", "info"] },
+        "code": { "type": "string", "description": "A code from spec/checks.md, such as unresolved, ambiguous, enum-value." },
+        "file": { "type": "string", "description": "Corpus-relative path with /." },
+        "line": { "type": "integer", "minimum": 1 },
+        "col": { "type": "integer", "minimum": 0 },
+        "raw": { "type": "string", "description": "The token as typed, brackets included." },
+        "message": { "type": "string" }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "required": ["file", "things", "settled", "onDefaults", "blocking", "unknownWords", "frames", "errors", "ready"],
+      "properties": {
+        "file": { "type": "string" },
+        "things": { "type": "integer", "description": "Fields the screen shows, counted through their definitions, once each." },
+        "settled": { "type": "integer" },
+        "onDefaults": { "type": "integer", "description": "Open fields drawn on a default." },
+        "blocking": { "type": "integer", "description": "Open fields with no default: nothing can be drawn for them." },
+        "unknownWords": { "type": "integer", "description": "Words written as \"?\", and actions with no words." },
+        "assumed": { "type": "integer", "description": "Tokens carrying an #a… assumption." },
+        "frames": { "type": "integer", "description": "States on the page." },
+        "errors": { "type": "integer" },
+        "level": { "type": "integer", "minimum": 0, "maximum": 4, "description": "The level the page reaches (spec/syntax.md, Levels)." },
+        "ready": { "type": "boolean" }
+      }
+    }
+  }
+}

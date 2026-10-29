@@ -1,0 +1,10 @@
+{
+  "name": "semark-repo",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "check": "node packages/semark/bin/semark.js check examples/larder"
+  }
+}
