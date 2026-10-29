@@ -60,12 +60,14 @@ A corpus is a folder that holds `patterns.md` (and `words.md`, `roles.md`) and, 
 | [`examples/minimal/`](examples/minimal/) | the smallest design that says something |
 | [`skills/`](skills/) | what an agent needs to write, check and draw from Sema, and the rules for an HTML prototype |
 | [`studies/`](studies/) | what the specimens taught, the controlled study, and the build test of October 2026 |
+| [`site/`](site/) | a playground: paste a corpus, see what the checker says and the drawing, all in the page |
 | [`test/`](test/) | the corpus tests and the two fixture corpora (traps, and one page per value rule) |
 
 ## Using the library
 
 ```js
-import { loadCorpus, checkCorpus, viewOf } from 'semark';
+import { checkCorpus, viewOf } from 'semark';
+import { loadCorpus } from 'semark/corpus.js';     // reading a folder needs Node; everything else runs in a browser too
 
 const { corpus } = await loadCorpus('examples/larder');
 const results = checkCorpus(corpus);                 // per design: diagnostics with file and line, readiness per screen

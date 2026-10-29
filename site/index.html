@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Semark playground</title>
+<style>
+  :root { --bg: #f6f5ef; --surface: #fff; --fg: #1f231b; --muted: #6b7262; --line: #d9dbd0; --accent: #3f6b3a; --err: #a33a2a; --warn: #6b4e00; --warn-bg: #fff4d6; --hatch: repeating-linear-gradient(45deg, transparent 0 6px, #d9dbd0 6px 7px); color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #171a15; --surface: #22261f; --fg: #ecefe6; --muted: #9ea69a; --line: #3a4036; --accent: #8fc585; --err: #e5786a; --warn: #f2d98a; --warn-bg: #3d3214; --hatch: repeating-linear-gradient(45deg, transparent 0 6px, #3a4036 6px 7px); color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; padding: 20px max(16px, env(safe-area-inset-right)) 40px max(16px, env(safe-area-inset-left)); }
+  header { max-width: 1100px; margin: 0 auto 16px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  header p { margin: 0; color: var(--muted); }
+  main { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { main { grid-template-columns: 1fr; } }
+  textarea { width: 100%; min-height: 420px; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--fg); resize: vertical; }
+  .row { display: flex; gap: 8px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
+  button, select { font: inherit; padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; min-width: 0; }
+  h2 { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+  pre { white-space: pre-wrap; font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 0; }
+  .d { padding: 4px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+  .d.error { color: var(--err); } .d.warning { color: var(--warn); } .d.info { color: var(--muted); }
+  .frame { border: 1px solid var(--line); border-radius: 10px; padding: 10px; margin-top: 10px; }
+  .frame h3 { margin: 0 0 8px; font-size: 14px; } .frame h3 small { color: var(--muted); font-weight: 400; }
+  .el { border: 1px dashed var(--line); border-radius: 8px; padding: 6px 8px; margin: 6px 0; font-size: 13px; }
+  .el .k { color: var(--muted); font-size: 11px; margin-right: 6px; }
+  .el .q { background: var(--hatch); padding: 0 6px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 12px; }
+  .el.button { border-style: solid; display: inline-block; margin-right: 6px; }
+  .el.unknown, .el.open { border-color: var(--warn); }
+  .el .req { color: var(--err); }
+  .when { font-size: 11px; color: var(--muted); font-family: ui-monospace, monospace; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Semark playground</h1>
+  <p>Paste a corpus below, one file per <code>=== path.md</code> block, and check it. The parser, the checker and the drawing run here in the page; nothing is sent anywhere.</p>
+</header>
+<main>
+  <div>
+    <textarea id="src" spellcheck="false"></textarea>
+    <div class="row">
+      <button class="primary" id="check">Check</button>
+      <label>Draw <select id="file"></select></label>
+      <span id="summary" style="color:var(--muted)"></span>
+    </div>
+  </div>
+  <div style="display:grid;gap:16px;min-width:0">
+    <div class="panel"><h2>What the checker says</h2><div id="diag"></div></div>
+    <div class="panel"><h2>Readiness</h2><pre id="ready"></pre></div>
+    <div class="panel"><h2>Drawing</h2><div id="draw"></div></div>
+  </div>
+</main>
+<script type="module">
+import { Corpus, checkCorpus, viewOf } from '../packages/semark/src/index.js';
+const $ = (id) => document.getElementById(id);
+const SAMPLE = `=== patterns.md
+---
+sema: patterns
+---
+
+# Patterns
+
+- [[input.text: pattern fits:text]] one line of free text
+- [[input.number: pattern fits:number]] a number, with its unit and range
+- [[choice.single: pattern fits:enum]] pick one of a few, all visible
+- [[action.primary: pattern fits:action]] the main thing to do
+
+=== order/index.md
+---
+sema: design
+---
+
+# Order
+
+[[order: design]]
+
+A customer says how the food should reach them.
+
+- [[place]] the one flow
+
+=== order/place.md
+---
+sema: flow
+---
+
+# Place
+
+[[place: flow]]
+
+- [[how -> placed]] the customer chooses and the order is placed
+
+=== order/data.md
+---
+sema: data
+---
+
+# Data
+
+## Order
+
+[[order-record: group]]
+
+- [[fulfilment: enum |delivery=Delivery|pickup=Collect from the restaurant| required initial:delivery "How"]]
+- [[street: text required when:fulfilment=delivery "Street and number"]]
+- [[door-note: text ? asks:product default:optional "For the courier"]]
+- [[tip: number optional unit:EUR range:0..20 "?"]]
+
+=== order/how.md
+---
+sema: screen
+---
+
+# How
+
+[[how: screen present:page "How should it reach you?"]]
+
+## Choose
+
+[[choose: section]]
+
+- [[order-record.fulfilment > choice.single]]
+- [[order-record.street > input.text]]
+- [[order-record.door-note > input.text]]
+- [[order-record.tip > input.number]]
+- [[go: action > action.primary "Place order" -> placed enabled:valid]]
+
+## States
+
+- [[delivering: state given:fulfilment=delivery&!submitted]]
+- [[collecting: state given:fulfilment=pickup&!submitted]]
+- [[missing-street: state given:fulfilment=delivery&!valid&submitted]]
+
+=== order/placed.md
+---
+sema: screen
+---
+
+# Placed
+
+[[placed: screen present:page "Thank you"]]
+
+## Done
+
+[[done: section]]
+
+- [[thanks: feedback "Your order is on its way to the kitchen."]]
+`;
+try { $('src').value = localStorage.getItem('semark.playground') || SAMPLE; } catch { $('src').value = SAMPLE; }
+
+function parseFiles(text) {
+  const files = []; let cur = null;
+  for (const line of text.split('\n')) {
+    const m = /^===\s+(\S+\.md)\s*$/.exec(line);
+    if (m) { cur = { file: m[1], lines: [] }; files.push(cur); continue; }
+    if (cur) cur.lines.push(line);
+  }
+  return files.map((f) => ({ file: f.file, text: f.lines.join('\n').replace(/^\n+/, '') }));
+}
+let corpus = null, results = null;
+function check() {
+  const text = $('src').value;
+  try { localStorage.setItem('semark.playground', text); } catch {}
+  const files = parseFiles(text);
+  corpus = new Corpus(files); results = checkCorpus(corpus);
+  const all = [...results.corpus, ...results.flatMap((r) => r.diagnostics)];
+  const e = all.filter((d) => d.severity === 'error').length, w = all.filter((d) => d.severity === 'warning').length;
+  $('summary').textContent = `${results.length} designs · ${files.length} files · ${e} errors · ${w} warnings`;
+  $('diag').innerHTML = all.length ? all.map((d) => `<div class="d ${d.severity}">${d.file}:${d.line} <b>${d.code}</b> — ${esc(d.message)}</div>`).join('') : '<div class="d info">Nothing to report.</div>';
+  $('ready').textContent = results.flatMap((r) => r.readiness.map((x) => `${x.file}  ${x.things} fields · ${x.settled} settled · ${x.onDefaults} on defaults · ${x.blocking} blocking · ${x.unknownWords} words unknown · ${x.frames} frames · ${x.ready ? 'ready' : 'not ready'}`)).join('\n') || 'No screen or widget.';
+  const sel = $('file'); const prev = sel.value; sel.innerHTML = '';
+  for (const f of files) { const o = document.createElement('option'); o.value = f.file; o.textContent = f.file; sel.appendChild(o); }
+  sel.value = files.some((f) => f.file === prev) ? prev : (files.find((f) => corpus.pages.get(f.file)?.page.sema === 'screen')?.file ?? files[0]?.file ?? '');
+  draw();
+}
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+const words = (w) => !w || w.state === 'none' ? '' : w.state === 'unknown' || w.state === 'name' ? `<span class="q">${esc(w.text || '?')}</span>` : esc(w.text) + (w.state === 'partial' ? '…' : '');
+function element(el) {
+  const cls = ['el', el.shape, el.words?.state === 'unknown' ? 'unknown' : '', el.open ? 'open' : ''].join(' ');
+  let body = `<span class="k">${esc(el.shape)}${el.variant ? '·' + esc(el.variant) : ''}</span>${words(el.words) || esc(el.name)}${el.required ? '<span class="req">*</span>' : ''}`;
+  if (el.values?.length) body += ' ' + el.values.map((v) => `<span class="k">${v.chosen ? '◉' : '○'}</span>${words(v.words) || esc(v.value)}`).join(' ');
+  if (el.placeholder) body += ` <span class="k">placeholder: ${esc(el.placeholder)}</span>`;
+  if (el.shown === 'unknown' && el.when) body += ` <span class="when">when:${esc(el.when)}</span>`;
+  if (el.enabled === 'no') body += ' <span class="k">disabled</span>';
+  if (el.goto) body += ` <span class="k">→ ${esc(el.goto)}</span>`;
+  return `<div class="${cls}">${body}${el.children.map(element).join('')}</div>`;
+}
+function draw() {
+  const file = $('file').value; if (!corpus || !file) { $('draw').innerHTML = ''; return; }
+  const v = viewOf(corpus, file);
+  if (v.kind === 'frames') {
+    $('draw').innerHTML = v.sheets.map((s) => s.frames.map((f) => `<div class="frame"><h3>${esc(s.name)} <small>· ${esc(f.name)}${f.given ? ' · given ' + esc(f.given) : ''}${f.skipped ? ' · skipped' : ''}</small></h3>${f.root ? element(f.root) : ''}${f.adds.map(element).join('')}${f.hidden.length ? `<div class="when">not in this state: ${f.hidden.map((h) => esc(h.name) + ' (when:' + esc(h.when) + ')').join(', ')}</div>` : ''}</div>`).join('')).join('') || '<div class="d info">No frame: a screen with no anchor.</div>';
+  } else if (v.kind === 'flow') {
+    $('draw').innerHTML = v.flows.map((f) => `<div class="frame"><h3>${esc(f.name)} <small>flow</small></h3>${f.edges.map((e) => `<div class="el">${esc(e.from)} → ${esc(e.to)}${e.when ? ` <span class="when">when:${esc(e.when)}</span>` : ''}</div>`).join('')}${f.nodes.filter((n) => n.state !== 'ok').map((n) => `<div class="el unknown">${esc(n.name)} <span class="k">${esc(n.state)}</span></div>`).join('')}</div>`).join('');
+  } else if (v.kind === 'map') {
+    const m = v.map;
+    $('draw').innerHTML = `<div class="frame"><h3>${esc(m.design)} <small>map · ${m.totals.ready} of ${m.totals.screens} ready · ${m.totals.errors} errors</small></h3>${m.screens.map((s) => `<div class="el">${esc(s.name)} <span class="k">${s.ready ? 'ready' : 'not ready'} · reached by ${esc(s.reachedBy.join(', ') || 'no flow')}</span></div>`).join('')}</div>`;
+  } else {
+    $('draw').innerHTML = v.sections.map((s) => `<div class="frame"><h3>${esc(s.heading ?? v.sema)}</h3>${s.rows.map((r) => `<div class="el" style="margin-left:${r.depth * 12}px"><span class="k">${esc(r.type ?? 'ref')}</span>${esc(r.path ?? r.name)} ${words(r.words)}${r.problem ? ` <span class="when">${esc(r.problem)}</span>` : ''}</div>`).join('')}</div>`).join('');
+  }
+}
+$('check').addEventListener('click', check);
+$('file').addEventListener('change', draw);
+$('src').addEventListener('keydown', (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') check(); });
+check();
+</script>
+</body>
+</html>
