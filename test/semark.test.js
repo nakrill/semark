@@ -216,7 +216,7 @@ test('never silent: each mistake in mistakes.md is one diagnostic, and its messa
   assert.equal(msg[21], 'a name cannot contain a space — write restaurant-name: text');
   assert.equal(msg[22], 'put a space after the colon: cuisine: text');
   assert.equal(msg[23], 'Website is a definition but names no type — types are lower case: website: text');
-  assert.equal(msg[24], 'required-field is not a mark Sema knows; the marks are listed in docs/sema/syntax.md');
+  assert.equal(msg[24], 'required-field is not a mark Sema knows; the marks are listed in spec/syntax.md');
   assert.equal(msg[25], 'the value list ended at the space before mid=Mid — values are written without spaces around the bars');
   assert.equal(msg[26], '"Name" is a second label and is ignored; one label per token');
   assert.equal(msg[27], 'asks:the product team looks like one value with spaces — quote it: asks:"the product team"');
@@ -275,7 +275,7 @@ test('trap 4: readiness counts what a screen shows through its definitions, once
 
 // ------------------------------------------------------------ the command line
 
-test('vouch sema check: totals, the report, exit 1 on errors; a nested copy of a corpus is skipped, a missing vocabulary is named', async () => {
+test('semark check: totals, the report, exit 1 on errors; a nested copy of a corpus is skipped, a missing vocabulary is named', async () => {
   const { runCheck } = await import('../packages/semark/src/corpus.js');
   // os is imported at the top.
   const capture = () => { const chunks = []; return { write: (s) => { chunks.push(s); return true; }, text: () => chunks.join('') }; };

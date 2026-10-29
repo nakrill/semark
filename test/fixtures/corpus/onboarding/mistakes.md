@@ -12,7 +12,7 @@ Nothing here has been checked by a person.
 # Mistakes
 
 Each line under Planted makes one mistake a designer makes before reading the syntax, and the checker names each one with its fix.
-`test/unit/sema.test.js` asserts exactly this set; the other pages of the corpus are left as they were.
+`test/semark.test.js` asserts exactly this set; the other pages of the corpus are left as they were.
 
 ## Planted
 

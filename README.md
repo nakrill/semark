@@ -33,7 +33,7 @@ Colour, type and pixels belong to a **binding**, which maps patterns such as `ch
 
 ```sh
 npm install            # nothing to install but the workspace itself; the library has no dependencies
-npm test               # 49 tests, numbers worked out by hand before the code
+npm test               # 51 tests, numbers worked out by hand before the code
 npm run check          # the sample corpus: 4 designs, 29 pages, 0 errors, and the open questions it keeps on purpose
 
 node packages/semark/bin/semark.js check examples/larder          # problems with file:line, readiness per screen; exit 1 on errors

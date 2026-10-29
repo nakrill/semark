@@ -27,7 +27,7 @@ const NOT_NAMES = new Set(['options:values', 'options:present', 'default:draw', 
 /** Keys whose value is words: an unquoted value with a space would split into stray flags after it. */
 const TEXT_KEYS = new Set(['hint', 'error', 'add', 'placeholder', 'initial', 'default', 'empty', 'is']);
 /**
- * Severities that are a decision rather than the spec's plain word (docs/sema/checks.md, DECISIONS D-013, D-014).
+ * Severities that are a decision rather than the spec's plain word (spec/checks.md and spec/decisions/).
  * @type {Record<string, Severity>}
  */
 export const SEVERITY = { 'name-is-type': 'error', 'unquoted-space': 'error' };
@@ -126,7 +126,7 @@ export function checkDesign(corpus, designName) {
         const strays = new Set(strayWords(t));
         t.marks.forEach((m, k) => {
           if (m.kind !== 'flag' || KNOWN_FLAGS.has(m.flag) || slip.consumed.has(k) || strays.has(k)) return;
-          diag('warning', 'unknown-mark', entry.file, it, `${m.flag} is not a mark Sema knows; the marks are listed in docs/sema/syntax.md`);
+          diag('warning', 'unknown-mark', entry.file, it, `${m.flag} is not a mark Sema knows; the marks are listed in spec/syntax.md`);
         });
       }
 
